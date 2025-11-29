@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI Sidebar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <img src="icons/icon48.png" alt="Gemini AI" class="header-icon">
+                <span>Gemini AI</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" id="newChatBtn" title="New Chat">
+                    ✨
+                </button>
+                <button class="btn-icon" id="settingsBtn" title="Settings">
+                    ⚙️
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">💬</div>
+                <h2 class="empty-state-title">Start a conversation</h2>
+                <p class="empty-state-description">Ask me anything! I'm powered by Google's Gemini AI.</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <div class="input-controls">
+                <button class="btn-page-toggle" id="pageToggleBtn" title="Include page content">
+                    📄
+                </button>
+            </div>
+            <div class="input-wrapper">
+                <textarea id="messageInput" class="input-field" placeholder="Ask Gemini anything..."
+                    rows="1"></textarea>
+                <button class="btn-send" id="sendBtn" title="Send message">
+                    ➤
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2 class="settings-title">Settings</h2>
+            <button class="btn-icon" id="closeSettingsBtn">✕</button>
+        </div>
+        <div class="settings-content">
+            <div id="settingsAlert"></div>
+
+            <div class="setting-group">
+                <label class="setting-label" for="apiKeyInput">Gemini API Key</label>
+                <p class="setting-description">
+                    Get your free API key from <a href="https://makersuite.google.com/app/apikey" target="_blank"
+                        style="color: var(--color-primary);">Google AI Studio</a>
+                </p>
+                <input type="password" id="apiKeyInput" class="setting-input"
+                    placeholder="Enter your Gemini API key...">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label" for="modelInput">Model</label>
+                <p class="setting-description">
+                    Enter any Gemini model name (e.g., gemini-2.0-flash-exp, gemini-1.5-pro-latest)
+                </p>
+                <input type="text" id="modelInput" class="setting-input" placeholder="gemini-2.0-flash-exp">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label" for="systemInstructionsInput">System Instructions (Optional)</label>
+                <p class="setting-description">
+                    Customize how the AI behaves. Use presets or write your own instructions.
+                </p>
+                <select id="presetPersonaSelect" class="setting-input" style="margin-bottom: 0.5rem;">
+                    <option value="">-- Select Preset Persona --</option>
+                    <option value="helper">💁 Helpful Assistant</option>
+                    <option value="coder">💻 Expert Coder</option>
+                    <option value="teacher">👨‍🏫 Patient Teacher</option>
+                    <option value="creative">🎨 Creative Writer</option>
+                    <option value="professional">💼 Professional</option>
+                </select>
+                <textarea id="systemInstructionsInput" class="setting-input setting-textarea"
+                    placeholder="e.g., You are a helpful coding assistant. Always provide clear explanations with code examples."
+                    rows="4"></textarea>
+                <div class="character-count" id="charCount">0 / 1000 characters</div>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+    </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

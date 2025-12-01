@@ -20,6 +20,9 @@
                 <span>Gemini AI</span>
             </div>
             <div class="header-actions">
+                <button class="btn-icon" id="historyBtn" title="Chat History">
+                    📚
+                </button>
                 <button class="btn-icon" id="newChatBtn" title="New Chat">
                     ✨
                 </button>
@@ -45,7 +48,36 @@
                 <button class="btn-page-toggle" id="pageToggleBtn" title="Include page content">
                     📄
                 </button>
+                <button class="btn-page-toggle" id="imageAttachBtn" title="Attach image">
+                    📎
+                </button>
+                <button class="btn-page-toggle" id="screenshotBtn" title="Capture screenshot">
+                    📸
+                </button>
+                <input type="file" id="imageInput" accept="image/*" multiple hidden>
             </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions" id="quickActions">
+                <button class="quick-action-btn" data-command="/summarize" title="Summarize page">
+                    📝 Summarize
+                </button>
+                <button class="quick-action-btn" data-command="/explain" title="Explain simply">
+                    💡 Explain
+                </button>
+                <button class="quick-action-btn" data-command="/code" title="Coding mode">
+                    💻 Code
+                </button>
+                <button class="quick-action-btn" data-command="/help" title="Show commands">
+                    ❓ Help
+                </button>
+            </div>
+
+            <!-- Image Preview Container -->
+            <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <div class="image-preview-list" id="imagePreviewList"></div>
+            </div>
+
             <div class="input-wrapper">
                 <textarea id="messageInput" class="input-field" placeholder="Ask Gemini anything..."
                     rows="1"></textarea>
@@ -107,6 +139,37 @@
     </div>
     </div>
 
+    <!-- History Panel -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <h2 class="history-title">Chat History</h2>
+            <button class="btn-icon" id="closeHistoryBtn">✕</button>
+        </div>
+
+        <div class="history-search">
+            <input type="text" id="historySearchInput" class="history-search-input"
+                placeholder="🔍 Search conversations...">
+        </div>
+
+        <div class="history-content" id="historyContent">
+            <!-- Empty state for history -->
+            <div class="history-empty-state" id="historyEmptyState">
+                <div class="history-empty-icon">📚</div>
+                <h3 class="history-empty-title">No conversations yet</h3>
+                <p class="history-empty-description">Start a new chat to save it to history</p>
+            </div>
+
+            <!-- Conversation list -->
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <div class="history-footer">
+            <button class="btn-secondary" id="clearHistoryBtn">🗑️ Clear All History</button>
+        </div>
+    </div>
+
+    <script src="history-manager.js"></script>
+    <script src="command-system.js"></script>
     <script src="popup.js"></script>
 </body>
 

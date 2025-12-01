@@ -278,6 +278,67 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep message channel open for async response
 });
 
+// Listen for messages from the popup iframe
+window.addEventListener('message', (event) => {
+    // Handle page content requests from the iframe
+    if (event.data && event.data.type === 'requestPageContent') {
+        const pageContent = getPageContent();
+
+        // Send response back to iframe
+        if (sidebarIframe && sidebarIframe.contentWindow) {
+            sidebarIframe.contentWindow.postMessage({
+                type: 'pageContentResponse',
+                requestId: event.data.requestId,
+                ...pageContent
+            }, '*');
+        }
+    }
+
+    // Handle screenshot capture requests
+    if (event.data && event.data.type === 'captureScreenshot') {
+        captureScreenshotForPopup(event.data.requestId);
+    }
+});
+
+// Capture screenshot and send to popup
+async function captureScreenshotForPopup(requestId) {
+    try {
+        // Get current tab
+        const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+        if (!tabs[0]) {
+            sendScreenshotError(requestId, 'No active tab found');
+            return;
+        }
+
+        // Capture visible tab
+        const imageData = await browser.tabs.captureVisibleTab(null, { format: 'png' });
+
+        // Send to iframe
+        if (sidebarIframe && sidebarIframe.contentWindow) {
+            sidebarIframe.contentWindow.postMessage({
+                type: 'screenshotCaptured',
+                requestId,
+                success: true,
+                imageData
+            }, '*');
+        }
+    } catch (error) {
+        console.error('Screenshot capture error:', error);
+        sendScreenshotError(requestId, error.message);
+    }
+}
+
+function sendScreenshotError(requestId, errorMessage) {
+    if (sidebarIframe && sidebarIframe.contentWindow) {
+        sidebarIframe.contentWindow.postMessage({
+            type: 'screenshotCaptured',
+            requestId,
+            success: false,
+            error: errorMessage
+        }, '*');
+    }
+}
+
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', createSidebar);

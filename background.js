@@ -42,9 +42,221 @@ browser.commands.onCommand.addListener((command) => {
     }
 });
 
-// Handle messages from popup/sidebar (if needed for future features)
+// Handle messages from popup/sidebar
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('Message received:', request);
+
+    // Handle tab management operations
+    if (request.action === 'list_tabs') {
+        browser.tabs.query({}).then(tabs => {
+            sendResponse({
+                success: true,
+                tabs: tabs.map(t => ({ id: t.id, title: t.title, url: t.url, active: t.active, windowId: t.windowId }))
+            });
+        }).catch(err => {
+            sendResponse({ success: false, error: err.message });
+        });
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'switch_tab') {
+        const query = request.query;
+
+        (async () => {
+            try {
+                let tabId = query;
+                let windowId = null;
+
+                // If query is a string and not a number, search for the tab
+                if (typeof query === 'string' && isNaN(parseInt(query))) {
+                    const tabs = await browser.tabs.query({});
+                    const match = tabs.find(t =>
+                        (t.title && t.title.toLowerCase().includes(query.toLowerCase())) ||
+                        (t.url && t.url.toLowerCase().includes(query.toLowerCase()))
+                    );
+                    if (match) {
+                        tabId = match.id;
+                        windowId = match.windowId;
+                    } else {
+                        sendResponse({ success: false, error: `No tab found matching "${query}"` });
+                        return;
+                    }
+                } else {
+                    tabId = parseInt(query);
+                    // Get the tab to find its windowId
+                    try {
+                        const tab = await browser.tabs.get(tabId);
+                        windowId = tab.windowId;
+                    } catch (e) {
+                        sendResponse({ success: false, error: `Tab ${tabId} not found` });
+                        return;
+                    }
+                }
+
+                // Focus the window first if we know it
+                if (windowId && browser.windows) {
+                    try {
+                        await browser.windows.update(windowId, { focused: true });
+                    } catch (e) {
+                        console.error('Error focusing window:', e);
+                    }
+                }
+
+                // Switch the tab
+                await browser.tabs.update(tabId, { active: true });
+                sendResponse({ success: true, tabId });
+            } catch (err) {
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'close_tab') {
+        const query = request.query;
+
+        (async () => {
+            try {
+                let tabId = query;
+
+                // If query is a string and not a number, search for the tab
+                if (typeof query === 'string' && isNaN(parseInt(query))) {
+                    const tabs = await browser.tabs.query({});
+                    const match = tabs.find(t =>
+                        (t.title && t.title.toLowerCase().includes(query.toLowerCase())) ||
+                        (t.url && t.url.toLowerCase().includes(query.toLowerCase()))
+                    );
+                    if (match) {
+                        tabId = match.id;
+                    } else {
+                        sendResponse({ success: false, error: `No tab found matching "${query}"` });
+                        return;
+                    }
+                } else {
+                    tabId = parseInt(query);
+                }
+
+                // Close the tab
+                await browser.tabs.remove(tabId);
+                sendResponse({ success: true, tabId });
+            } catch (err) {
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'close_current_tab') {
+        (async () => {
+            try {
+                // Get the last focused window
+                const currentWindow = await browser.windows.getLastFocused();
+                // Query tabs in that window
+                const tabs = await browser.tabs.query({ windowId: currentWindow.id });
+                // Find the active tab
+                const activeTab = tabs.find(t => t.active);
+
+                if (activeTab) {
+                    console.log('🔴 [BG] Closing current tab:', activeTab.id, activeTab.title);
+                    await browser.tabs.remove(activeTab.id);
+                    sendResponse({ success: true, tabId: activeTab.id });
+                } else {
+                    sendResponse({ success: false, error: 'No active tab found' });
+                }
+            } catch (err) {
+                console.error('🔴 [BG] Error closing current tab:', err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'reload_current_tab') {
+        (async () => {
+            try {
+                // Get the last focused window
+                const currentWindow = await browser.windows.getLastFocused();
+                // Query tabs in that window
+                const tabs = await browser.tabs.query({ windowId: currentWindow.id });
+                // Find the active tab
+                const activeTab = tabs.find(t => t.active);
+
+                if (activeTab) {
+                    console.log('🔄 [BG] Reloading current tab:', activeTab.id, activeTab.title);
+                    await browser.tabs.reload(activeTab.id);
+                    sendResponse({ success: true, tabId: activeTab.id });
+                } else {
+                    sendResponse({ success: false, error: 'No active tab found' });
+                }
+            } catch (err) {
+                console.error('🔄 [BG] Error reloading current tab:', err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'reload_tab') {
+        const query = request.query;
+
+        (async () => {
+            try {
+                let tabId = query;
+
+                // If query is a string and not a number, search for the tab
+                if (typeof query === 'string' && isNaN(parseInt(query))) {
+                    const tabs = await browser.tabs.query({});
+                    const match = tabs.find(t =>
+                        (t.title && t.title.toLowerCase().includes(query.toLowerCase())) ||
+                        (t.url && t.url.toLowerCase().includes(query.toLowerCase()))
+                    );
+                    if (match) {
+                        tabId = match.id;
+                    } else {
+                        sendResponse({ success: false, error: `No tab found matching "${query}"` });
+                        return;
+                    }
+                } else {
+                    tabId = parseInt(query);
+                }
+
+                // Reload the tab
+                await browser.tabs.reload(tabId);
+                sendResponse({ success: true, tabId });
+            } catch (err) {
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'group_tabs') {
+        const tabIds = request.tabIds;
+        const groupName = request.name;
+
+        // Check if browser supports tab groups (Chromium only)
+        if (browser.tabGroups) {
+            (async () => {
+                try {
+                    const groupId = await browser.tabs.group({ tabIds });
+                    if (groupName && groupId) {
+                        await browser.tabGroups.update(groupId, { title: groupName });
+                    }
+                    sendResponse({ success: true, groupId });
+                } catch (err) {
+                    sendResponse({ success: false, error: err.message });
+                }
+            })();
+        } else {
+            sendResponse({ success: false, error: 'Tab groups not supported in this browser' });
+        }
+
+        return true; // Keep channel open for async response
+    }
+
     sendResponse({ success: true });
     return true;
 });

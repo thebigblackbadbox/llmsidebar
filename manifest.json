@@ -11,7 +11,8 @@
     "permissions": [
         "storage",
         "activeTab",
-        "scripting"
+        "scripting",
+        "tabs"
     ],
     "host_permissions": [
         "https://generativelanguage.googleapis.com/*",
@@ -50,6 +51,8 @@
                 "popup.html",
                 "icons/*",
                 "popup.js",
+                "history-manager.js",
+                "command-system.js",
                 "styles.css"
             ],
             "matches": [

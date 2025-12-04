@@ -33,50 +33,51 @@
     }
 
     async function closeCurrentTab() {
-        console.log('🔴 closeCurrentTab() called');
+        console.log('🔧 [Tool] closeCurrentTab() called');
         try {
             // Send message to background script to close current tab
             const response = await browser.runtime.sendMessage({
                 action: 'close_current_tab'
             });
 
-            console.log('🔴 Background response:', response);
+            console.log('🔧 [Tool] Background response for closeCurrentTab:', response);
 
             if (response && response.success) {
-                console.log('🔴 Successfully closed tab:', response.tabId);
+                console.log('✅ [Tool] Successfully closed tab:', response.tabId);
                 return response.tabId;
             }
 
             throw new Error(response?.error || 'Failed to close current tab');
         } catch (error) {
-            console.error('🔴 ERROR in closeCurrentTab:', error);
+            console.error('❌ [Tool] ERROR in closeCurrentTab:', error);
             throw error;
         }
     }
 
     async function reloadPage() {
-        console.log('🔄 reloadPage() called');
+        console.log('🔧 [Tool] reloadPage() called');
         try {
             // Send message to background script to reload current tab
             const response = await browser.runtime.sendMessage({
                 action: 'reload_current_tab'
             });
 
-            console.log('🔄 Background response:', response);
+            console.log('🔧 [Tool] Background response for reloadPage:', response);
 
             if (response && response.success) {
-                console.log('🔄 Successfully reloaded tab:', response.tabId);
+                console.log('✅ [Tool] Successfully reloaded tab:', response.tabId);
                 return response.tabId;
             }
 
             throw new Error(response?.error || 'Failed to reload current tab');
         } catch (error) {
-            console.error('🔄 ERROR in reloadPage:', error);
+            console.error('❌ [Tool] ERROR in reloadPage:', error);
             throw error;
         }
     }
 
     async function reloadTab(query) {
+        console.log('🔧 [Tool] reloadTab() called with query:', query);
         try {
             // Send message to background script
             const response = await browser.runtime.sendMessage({
@@ -84,13 +85,16 @@
                 query: query
             });
 
+            console.log('🔧 [Tool] Background response for reloadTab:', response);
+
             if (response && response.success) {
+                console.log('✅ [Tool] Successfully reloaded tab:', response.tabId);
                 return response.tabId;
             }
 
             throw new Error(response?.error || 'Failed to reload tab');
         } catch (error) {
-            console.error('Error reloading tab:', error);
+            console.error('❌ [Tool] Error reloading tab:', error);
             throw error;
         }
     }
@@ -133,22 +137,25 @@
     }
 
     async function listTabs() {
+        console.log('🔧 [Tool] listTabs() called');
         try {
             // Send message to background script
             const response = await browser.runtime.sendMessage({ action: 'list_tabs' });
+            console.log('🔧 [Tool] Background response for listTabs:', response);
             if (response && response.success) {
+                console.log(`✅ [Tool] Found ${response.tabs.length} tabs`);
                 return response.tabs.map(t => ({ id: t.id, title: t.title, url: t.url }));
             }
             throw new Error(response?.error || 'Failed to list tabs');
         } catch (error) {
-            console.error('Error listing tabs:', error);
+            console.error('❌ [Tool] Error listing tabs:', error);
             return [];
         }
     }
 
     async function switchTab(query) {
         try {
-            console.log('Switching tab with query:', query);
+            console.log('🔧 [Tool] switchTab() called with query:', query);
 
             // Send message to background script
             const response = await browser.runtime.sendMessage({
@@ -156,19 +163,22 @@
                 query: query
             });
 
+            console.log('🔧 [Tool] Background response for switchTab:', response);
+
             if (response && response.success) {
-                console.log('Successfully switched to tab:', response.tabId);
+                console.log('✅ [Tool] Successfully switched to tab:', response.tabId);
                 return response.tabId;
             }
 
             throw new Error(response?.error || 'Failed to switch tab');
         } catch (error) {
-            console.error('Error switching tab:', error);
+            console.error('❌ [Tool] Error switching tab:', error);
             throw error;
         }
     }
 
     async function closeTab(query) {
+        console.log('🔧 [Tool] closeTab() called with query:', query);
         try {
             // Send message to background script
             const response = await browser.runtime.sendMessage({
@@ -176,13 +186,16 @@
                 query: query
             });
 
+            console.log('🔧 [Tool] Background response for closeTab:', response);
+
             if (response && response.success) {
+                console.log('✅ [Tool] Successfully closed tab(s):', response.tabId || response.count);
                 return response.tabId;
             }
 
             throw new Error(response?.error || 'Failed to close tab');
         } catch (error) {
-            console.error('Error closing tab:', error);
+            console.error('❌ [Tool] Error closing tab:', error);
             throw error;
         }
     }
@@ -1103,6 +1116,7 @@
 
     // Helper to execute a single tool and return result
     async function executeSingleTool(toolCall) {
+        console.log(`🔧 [Executor] Executing tool: ${toolCall.tool}`, toolCall.args || toolCall);
         const result = {
             tool: toolCall.tool,
             success: true,

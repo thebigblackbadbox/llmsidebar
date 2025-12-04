@@ -96,6 +96,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // Focus the window first if we know it
                 if (windowId && browser.windows) {
                     try {
+                        console.log(`[BG] Focusing window ${windowId} for tab ${tabId}`);
                         await browser.windows.update(windowId, { focused: true });
                     } catch (e) {
                         console.error('Error focusing window:', e);
@@ -103,9 +104,15 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }
 
                 // Switch the tab
+                console.log(`[BG] Activating tab ${tabId}`);
                 await browser.tabs.update(tabId, { active: true });
+
+                // Wait a brief moment to ensure state propagation (helps with subsequent reload calls)
+                await new Promise(resolve => setTimeout(resolve, 100));
+
                 sendResponse({ success: true, tabId });
             } catch (err) {
+                console.error('[BG] Error in switch_tab:', err);
                 sendResponse({ success: false, error: err.message });
             }
         })();
@@ -118,29 +125,34 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         (async () => {
             try {
-                let tabId = query;
+                let tabsToClose = [];
 
-                // If query is a string and not a number, search for the tab
+                // If query is a string and not a number, search for ALL matching tabs
                 if (typeof query === 'string' && isNaN(parseInt(query))) {
                     const tabs = await browser.tabs.query({});
-                    const match = tabs.find(t =>
+                    const matches = tabs.filter(t =>
                         (t.title && t.title.toLowerCase().includes(query.toLowerCase())) ||
                         (t.url && t.url.toLowerCase().includes(query.toLowerCase()))
                     );
-                    if (match) {
-                        tabId = match.id;
+
+                    if (matches.length > 0) {
+                        tabsToClose = matches.map(t => t.id);
                     } else {
-                        sendResponse({ success: false, error: `No tab found matching "${query}"` });
+                        sendResponse({ success: false, error: `No tabs found matching "${query}"` });
                         return;
                     }
                 } else {
-                    tabId = parseInt(query);
+                    // Single ID
+                    tabsToClose = [parseInt(query)];
                 }
 
-                // Close the tab
-                await browser.tabs.remove(tabId);
-                sendResponse({ success: true, tabId });
+                console.log(`[BG] Closing ${tabsToClose.length} tabs matching "${query}"`);
+
+                // Close the tabs
+                await browser.tabs.remove(tabsToClose);
+                sendResponse({ success: true, count: tabsToClose.length, tabIds: tabsToClose });
             } catch (err) {
+                console.error('[BG] Error in close_tab:', err);
                 sendResponse({ success: false, error: err.message });
             }
         })();
